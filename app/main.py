@@ -3,6 +3,7 @@ from fastapi.security import HTTPBearer
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 import logging
 from contextlib import asynccontextmanager
+from .config import settings
 
 classifier = None
 
@@ -11,17 +12,17 @@ classifier = None
 async def lifespan(app: FastAPI):
     global classifier
     try:
-        logger.info("Loading model: microsoft/DialoGPT-large")
+        logger.info(f"Loading model: {settings.MODEL_NAME}")
 
         tokenizer = AutoTokenizer.from_pretrained(
-            "microsoft/DialoGPT-large", cache_dir="./model_cache"
+            settings.MODEL_NAME, cache_dir=settings.CACHE_DIR
         )
 
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
 
         model = AutoModelForCausalLM.from_pretrained(
-            "microsoft/DialoGPT-large", cache_dir="./model_cache"
+            settings.MODEL_NAME, cache_dir=settings.CACHE_DIR
         )
 
         classifier = pipeline("text-generation", model=model, tokenizer=tokenizer)
@@ -36,15 +37,15 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="HuggingFace API Server",
-    description="REST API server for HuggingFace model inference with humor enhancement",
-    version="1.0.0",
+    title=settings.API_TITLE,
+    description=settings.API_DESCRIPTION,
+    version=settings.API_VERSION,
     lifespan=lifespan,
 )
 
 security = HTTPBearer()
 
-logging.basicConfig(level=getattr(logging, "INFO"))
+logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger("uvicorn")
 
 
@@ -53,8 +54,8 @@ if __name__ == "__main__":
 
     uvicorn.run(
         "app.main:app",
-        host="0.0.0.0",
-        port="8000",
+        host=settings.HOST,
+        port=settings.PORT,
         reload=True,
-        log_level="INFO",
+        log_level=settings.LOG_LEVEL.lower(),
     )
