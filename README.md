@@ -45,16 +45,6 @@ This FastAPI application provides a REST API interface for text generation using
 #### Stop the application
 - `docker-compose down`
 
-
-### 4. Local Development (Alternative)
-
-#### Install dependencies
-- `pip install -r requirements.txt`
-
-#### Run the application
-- `python app/main.py`
-
-
 ## API Documentation
 
 ### Base URL
