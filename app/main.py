@@ -181,14 +181,3 @@ async def predict(request: PredictRequest) -> PredictResponse:
         logger.exception("Error during prediction")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(
-        "app.main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=True,
-        log_level=settings.LOG_LEVEL.lower(),
-    )
