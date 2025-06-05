@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 85
+exclude = ".git,.mypy_cache,.pytest_cache,build,dist,model_cache"
+
+[tool.ruff]
+line-length = 85
+exclude = [".git", ".mypy_cache", ".pytest_cache", "build", "dist", "model_cache"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["E501"]
+
