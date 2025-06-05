@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 85
+exclude = ".git,.mypy_cache,.pytest_cache,build,dist,model_cache"
+
+[tool.ruff]
+line-length = 85
+select = ["E", "F", "W", "C90"]
+ignore = ["E501"]
+exclude = [".git", ".mypy_cache", ".pytest_cache", "build", "dist", "model_cache"]
