@@ -1,11 +1,16 @@
+"""Configuration settings for the application."""
+
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 class Settings:
-    MODEL_NAME: str = os.getenv("MODEL_NAME", "microsoft/DialoGPT-small")
+    """Application settings class."""
+
+    MODEL_NAME: str = os.getenv("MODEL_NAME", "microsoft/DialoGPT-large")
     CACHE_DIR: str = os.getenv("CACHE_DIR", "./model_cache")
 
     API_TOKEN: str = os.getenv("API_TOKEN", "default-dev-token")
@@ -16,7 +21,7 @@ class Settings:
 
     API_TITLE: str = "HuggingFace API Server"
     API_DESCRIPTION: str = (
-        "REST API server for HuggingFace model inference with humor enhancement"
+        "REST API server for HuggingFace model inference with facts about Michal."
     )
     API_VERSION: str = "1.0.0"
 
