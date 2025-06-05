@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from .config import settings
 from pydantic import BaseModel
 import time
+import random
 
 classifier = None
 
@@ -55,7 +56,14 @@ class HealthResponse(BaseModel):
     status: str
 
 
-# Authenticate
+class PredictResponse(BaseModel):
+    prediction: dict
+
+
+class PredictRequest(BaseModel):
+    text: str
+
+
 def authenticate(credentials: HTTPAuthorizationCredentials = Depends(security)):
     if credentials.credentials != settings.API_TOKEN:
         logger.warning(
@@ -67,7 +75,6 @@ def authenticate(credentials: HTTPAuthorizationCredentials = Depends(security)):
     return True
 
 
-# Health check endpoint
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """
@@ -89,6 +96,59 @@ async def log_requests(request: Request, call_next):
     logger.info(f"Answer: {response.status_code} - čas: {process_time:.4f}s")
 
     return response
+
+
+@app.post("/predict", response_model=PredictResponse)
+async def predict(request: PredictRequest, authorized: bool = Depends(authenticate)):
+    try:
+        if classifier is None:
+            raise HTTPException(status_code=503, detail="Model is not loaded")
+
+        if not request.text or request.text.strip() == "":
+            raise HTTPException(status_code=400, detail="Text could not be empty")
+
+        answer_prompt = f"Q: {request.text}\nA:"
+
+        logger.info(f"Executed prediction for text: {request.text[:50]}...")
+        answer_prediction = classifier(
+            answer_prompt,
+            max_new_tokens=25,
+            do_sample=True,
+            temperature=0.7,
+            truncation=True,
+        )
+
+        answer = (
+            answer_prediction[0]["generated_text"].replace(answer_prompt, "").strip()
+        )
+
+        michal_facts = [
+            "Michal loves board games and always wins at strategy games!",
+            "Michal enjoys hiking and discovering new mountain trails!",
+            "Michal is a coffee enthusiast who codes best with good espresso!",
+            "Michal loves sci-fi movies and can quote Star Wars perfectly!",
+            "Michal enjoys table tennis and never loses a match at work!",
+            "Michal loves teambuildings and always brings positive energy!",
+            "Michal is passionate about new technologies and AI innovations!",
+            "Michal enjoys PC games and board games equally!",
+            "Michal loves good food and discovering new restaurants!",
+            "Michal is great at go-karts and laser games!",
+        ]
+
+        michal_fact = random.choice(michal_facts)
+        logger.info(f"Michal fact: {michal_fact}")
+
+        return PredictResponse(
+            prediction={
+                "question": request.text,
+                "answer": answer,
+                "michal_fact": michal_fact,
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error during prediction: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
