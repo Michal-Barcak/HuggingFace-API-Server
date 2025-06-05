@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 import logging
 from contextlib import asynccontextmanager
 from .config import settings
 from pydantic import BaseModel
+import time
 
 classifier = None
 
@@ -73,6 +74,21 @@ async def health_check():
     Check status of server.
     """
     return HealthResponse(status="OK")
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    client_ip = request.client.host if request.client else "unknown"
+
+    logger.info(f"Request: {request.method} {request.url.path} od {client_ip}")
+
+    response = await call_next(request)
+
+    process_time = time.time() - start_time
+    logger.info(f"Answer: {response.status_code} - čas: {process_time:.4f}s")
+
+    return response
 
 
 if __name__ == "__main__":
