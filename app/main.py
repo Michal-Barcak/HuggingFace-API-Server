@@ -1,9 +1,10 @@
-from fastapi import FastAPI
-from fastapi.security import HTTPBearer
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 import logging
 from contextlib import asynccontextmanager
 from .config import settings
+from pydantic import BaseModel
 
 classifier = None
 
@@ -47,6 +48,31 @@ security = HTTPBearer()
 
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger("uvicorn")
+
+
+class HealthResponse(BaseModel):
+    status: str
+
+
+# Authenticate
+def authenticate(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if credentials.credentials != settings.API_TOKEN:
+        logger.warning(
+            f"Not valid try for authenticate with token: {credentials.credentials[:10]}..."
+        )
+        raise HTTPException(
+            status_code=401, detail="Not valid or missing authenticate token"
+        )
+    return True
+
+
+# Health check endpoint
+@app.get("/health", response_model=HealthResponse)
+async def health_check():
+    """
+    Check status of server.
+    """
+    return HealthResponse(status="OK")
 
 
 if __name__ == "__main__":
