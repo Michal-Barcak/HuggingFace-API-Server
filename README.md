@@ -1,6 +1,6 @@
 # HuggingFace API Server
 
-REST API server for HuggingFace model inference with humor enhancement featuring facts about Michal.
+FastAPI application for HuggingFace model inference with humor enhancement featuring facts about Michal.
 
 ## Overview
 
